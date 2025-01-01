@@ -1,0 +1,12 @@
+{
+  "name": "route-mapper",
+  "version": "0.1.0",
+  "author": "Yeremi Loli",
+  "homepage": "https://github.com/yeremi/route-mapper",
+  "description": "A PHP library for mapping and resolving routes using attributes.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yeremi/route-mapper.git"
+  }
+}

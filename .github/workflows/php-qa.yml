@@ -1,0 +1,41 @@
+name: PHP Quality Assurance
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  php-qa:
+    name: PHP QA
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: [ '8.0', '8.1', '8.2' ]
+        os: [ 'ubuntu-latest' ]
+      fail-fast: false
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run PHP Lint
+        run: find . -type f -name "*.php" -exec php -l {} \;
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=512M
+
+      - name: Run PHPUnit
+        run: ./vendor/bin/phpunit --coverage-text
+
+      - name: Run PHP CS Fixer
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff
