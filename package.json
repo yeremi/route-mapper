@@ -7,6 +7,23 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yeremi/route-mapper.git"
+    "url": "git+https://github.com/yeremi/route-mapper.git"
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/yeremi/route-mapper/issues"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "semantic-release": "^24.2.0"
   }
 }
