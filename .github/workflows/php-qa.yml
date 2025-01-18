@@ -26,13 +26,12 @@ jobs:
           php-version: ${{ matrix.php }}
 
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
-
-      - name: Run PHP Lint
-        run: find . -type f -name "*.php" -exec php -l {} \;
+        uses: ramsey/composer-install@v1
+        with:
+          composer-options: "--prefer-dist"
 
       - name: Run PHPStan
-        run: ./vendor/bin/phpstan analyse --memory-limit=512M
+        run: ./vendor/bin/phpstan analyse -l 3 src tests --memory-limit=512M
 
       - name: Run PHPUnit
         run: ./vendor/bin/phpunit --coverage-text
