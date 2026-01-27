@@ -46,7 +46,6 @@
     "cs-check": "@php vendor/bin/php-cs-fixer fix --dry-run --diff",
     "cs-fix": "@php vendor/bin/php-cs-fixer fix",
     "phpstan": "@php vendor/bin/phpstan analyse --memory-limit=512M",
-    "test": "@php vendor/bin/phpunit",
-    "test:coverage": "@php vendor/bin/phpunit --coverage-text"
+    "test": "@php vendor/bin/phpunit"
   }
 }
