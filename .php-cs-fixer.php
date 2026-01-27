@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $finder = PhpCsFixer\Finder::create()
     ->in([
         __DIR__ . '/src',
@@ -10,6 +12,7 @@ $finder = PhpCsFixer\Finder::create()
     ->ignoreVCS(true);
 
 $config = new PhpCsFixer\Config();
+$config->setRiskyAllowed(true);
 return $config->setRules([
     '@PSR12' => true,
     'array_syntax' => ['syntax' => 'short'],
