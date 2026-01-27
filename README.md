@@ -1,32 +1,47 @@
 # RouteMapper
 
-**RouteMapper** is a lightweight PHP library designed to leverage PHP 8 attributes to map and resolve API routes effortlessly. Whether you’re building APIs or integrating with existing systems, RouteMapper simplifies the routing process, offering flexibility and customizability without the overhead of a full framework.
+![CI](https://github.com/yeremi/route-mapper/actions/workflows/php-qa.yml/badge.svg?branch=main)
+![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue)
+![License](https://img.shields.io/github/license/yeremi/route-mapper)
+![Latest Version](https://img.shields.io/packagist/v/yeremi/route-mapper)
+![Downloads](https://img.shields.io/packagist/dt/yeremi/route-mapper)
+
+**RouteMapper** is a lightweight, framework-agnostic PHP library that uses **PHP 8 attributes** to map and resolve API route paths defined via PHP attributes in a simple and explicit way.
+
+It focuses on one responsibility only: **mapping routes to methods**, without imposing an HTTP framework or execution model.
+
+---
+
+## Design Philosophy
+
+- RouteMapper focuses on **one responsibility only**: mapping routes to methods.
+- It does **not** handle HTTP requests, middleware, controllers, or responses.
+- Integration is explicit by design — no magic containers or hidden behavior.
+- The library favors **clarity over convenience**.
+- If you need a full routing framework, RouteMapper is probably not the right tool.
 
 ---
 
 ## Key Features
 
-- **Attribute-Based Routing**: Define routes directly in your classes and methods using PHP 8 attributes.
-- **Lightweight and Framework-Agnostic**: Perfect for standalone projects or as a complement to frameworks like Slim or Mezzio.
-- **Simple Integration**: Easily integrate with tools like [Guzzle](https://docs.guzzlephp.org) or other HTTP clients.
-- **Customizable and Flexible**: Full control over routing logic and resolution.
-- **No Bloat**: Focused functionality without unnecessary dependencies.
+- **Attribute-Based Routing** using PHP 8 attributes
+- **Framework-Agnostic** (works with any HTTP client or framework)
+- **Lightweight & Focused** — no unnecessary abstractions
+- **Explicit Route Resolution** — no magic, full control
+- **Modern PHP** — strict typing and PHP 8 features
+
+---
+
+## Requirements
+
+- PHP 8.0 or higher
 
 ---
 
 ## Why Use RouteMapper?
 
-1. **Lightweight and Focused**
-    - Unlike heavy frameworks, RouteMapper solves a specific problem: mapping routes with attributes. Ideal for small-to-medium projects or as a complement to other tools.
-
-2. **Easy Integration**
-    - RouteMapper can integrate seamlessly with HTTP clients (like Guzzle) or middleware-based frameworks, making it adaptable for various use cases.
-
-3. **Customizability**
-    - Developers retain full control of routing behavior while benefiting from the simplicity of attribute-based route definitions.
-
-4. **Practicality for Modern PHP**
-    - Embraces PHP 8 features, such as attributes and strict typing, ensuring modern, clean, and maintainable code.
+Use RouteMapper when you want to keep routing metadata close to your code (via attributes) and still remain framework-agnostic.
+It works well for SDKs, API clients, small services, and projects that want explicit, testable route resolution without adopting a full stack.
 
 ---
 
@@ -42,13 +57,17 @@ composer require yeremi/route-mapper
 
 ## Example Usage
 
-### Setup
+> Routes are resolved using the class name and method name.
+
+### Defining routes with attributes
 
 ```php
 use Yeremi\RouteMapper\Attribute\ApiRoute;
 use Yeremi\RouteMapper\Registry\RouteRegistry;
 use Yeremi\RouteMapper\Resolver\RouteResolver;
-use GuzzleHttp\Client;
+
+// (for this example): `composer require guzzlehttp/guzzle`
+use GuzzleHttp\Client; // Example only
 
 class UserRepository
 {
@@ -57,14 +76,22 @@ class UserRepository
         protected RouteResolver $routeResolver,
         protected Client $httpClient
     ) {
+        // Registers all #[ApiRoute] attributes in this class
         $this->routeRegistry->registerRoutes($this);
     }
 
-    #[ApiRoute('/user/{id}')]
-    public function fetchOne(): void
+    #[ApiRoute('/users')] // Defines only the route path
+    public function fetchAll(): void
     {
-        $parameters = ['id' => 123];
-        $route = $this->resolveRoute(__FUNCTION__, $parameters);
+        $route = $this->resolveRoute(__FUNCTION__);
+        $response = $this->httpClient->get($route);
+        echo $response->getBody()->getContents();
+    }
+    
+    #[ApiRoute('/user/{id}')]
+    public function fetchOne(int $id): void
+    {
+        $route = $this->resolveRoute(__FUNCTION__, ['id' => $id]);
         $response = $this->httpClient->get($route);
 
         if ($response->getStatusCode() === 200) {
@@ -72,19 +99,11 @@ class UserRepository
             // Process the $data as needed.
         }
     }
-    
-    #[ApiRoute('/users')]
-    public function fetchAll(): void
-    {
-        $route = $this->resolveRoute(__FUNCTION__, []);
-        $response = $this->httpClient->get($route);
-        echo "Fetched Users: " . $response->getBody()->getContents() . "\n";
-    }
 
     #[ApiRoute('/user/create')]
     public function create(array $data): void
     {
-        $route = $this->resolveRoute(__FUNCTION__, []);
+        $route = $this->resolveRoute(__FUNCTION__);
         $response = $this->httpClient->post($route, [
             'json' => $data,
         ]);
@@ -113,9 +132,9 @@ class UserRepository
         echo "User Deleted: " . $response->getBody()->getContents() . "\n";
     }
 
-    private function resolveRoute(string $methodName, array $parameters): string
+    private function resolveRoute(string $methodName, array $parameters = []): string
     {
-        $route = $this->routeRegistry->getRoute($this, $methodName);
+        $route = $this->routeRegistry->getRoute(static::class, $methodName);
 
         if (!$route) {
             throw new \RuntimeException("Route not found for method: $methodName");
@@ -135,7 +154,7 @@ $httpClient = new Client([
 
 $userRepository = new UserRepository($routeRegistry, $routeResolver, $httpClient);
 // Fetch one user
-$userRepository->fetchOne();
+$userRepository->fetchOne(123);
 // Fetch all users
 $userRepository->fetchAll();
 // Create a user
@@ -146,16 +165,18 @@ $userRepository->update(123, ['name' => 'John Doe Updated']);
 $userRepository->delete(123);
 ```
 
+> Note: RouteMapper does not perform HTTP requests. Any HTTP client (Guzzle, Symfony HttpClient, etc.) can be used.
+
 ---
 
 ## Comparison with Other Solutions
 
-| Feature                        | RouteMapper             | Symfony Routing          | Laravel Routing          | Slim Framework           |
-|--------------------------------|-------------------------|--------------------------|--------------------------|--------------------------|
-| **Focus on Attributes**        | Yes                     | Yes                      | No                       | No                       |
-| **Framework-Agnostic**         | Yes                     | No                       | No                       | Yes                      |
-| **Lightweight**                | Yes                     | Moderate                 | No                       | Yes                      |
-| **Customization**              | High                    | Moderate                 | Low                      | High                     |
+| Feature                 | RouteMapper | Symfony Routing | Laravel Routing | Slim Framework |
+|-------------------------|-------------|-----------------|-----------------|----------------|
+| **Attribute-based**     | ✅           | ✅               | ❌               | ❌              |
+| **Framework-Agnostic**  | ✅           | ❌               | ❌               | ✅              |
+| **Lightweight**         | ✅           | ⚠️              | ❌               | ✅              |
+| **Explicit resolution** | ✅           | ❌               | ❌               | ⚠️             |
 
 ## Acknowledgments
 
