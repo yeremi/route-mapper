@@ -24,14 +24,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 'lts/*'
-
-      - name: Install Dependencies
-        run: |
-          npm init -y
-          npm install --save-dev semantic-release @semantic-release/git @semantic-release/github @semantic-release/changelog
+          node-version: 22
 
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        # Versions are pinned here instead of a package-lock.json (PHP library, no npm package).
+        run: >-
+          npx --yes
+          -p semantic-release@25.0.9
+          -p @semantic-release/changelog@7.0.0
+          -p @semantic-release/git@11.0.1
+          semantic-release
