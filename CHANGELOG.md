@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/yeremi/route-mapper/compare/v1.0.1...v1.0.2) (2026-11-27)
+
+
+### Bug Fixes
+
+* **resolver:** encode route parameter values in a single pass ([ce22f78](https://github.com/yeremi/route-mapper/commit/ce22f780bfcd74cea0dc99fd1467b0bf7344101f)), closes [#4](https://github.com/yeremi/route-mapper/issues/4)
+
 ## [1.0.1](https://github.com/yeremi/route-mapper/compare/v1.0.0...v1.0.1) (2026-11-04)
 
 
