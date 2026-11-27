@@ -84,12 +84,11 @@ class RouteResolverTest extends TestCase
         $this->assertSame('/events/%7Bpartnership%7D/partnership/abc', $resolved);
     }
 
-    /**
-     * @return array<string, array{string, string}>
-     */
-    public static function provideUnsafeValues(): array
+    public function testResolveEncodesUnsafeValues(): void
     {
-        return [
+        // A loop instead of a data provider: composer allows PHPUnit 9 to 11,
+        // and no provider syntax works on all of them without errors or deprecations.
+        $cases = [
             'path traversal' => ['../templates/soon/1', '/events/..%2Ftemplates%2Fsoon%2F1/x'],
             'slash' => ['a/b', '/events/a%2Fb/x'],
             'query' => ['1?admin=1', '/events/1%3Fadmin%3D1/x'],
@@ -98,17 +97,15 @@ class RouteResolverTest extends TestCase
             'space and plus' => ['a b+c', '/events/a%20b%2Bc/x'],
             'non-ascii' => ['São Paulo', '/events/S%C3%A3o%20Paulo/x'],
         ];
-    }
 
-    /**
-     * @dataProvider provideUnsafeValues
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('provideUnsafeValues')]
-    public function testResolveEncodesUnsafeValues(string $value, string $expected): void
-    {
         $resolver = new RouteResolver();
-
-        $this->assertSame($expected, $resolver->resolve(new ApiRoute('/events/{id}/x'), ['id' => $value]));
+        foreach ($cases as $name => [$value, $expected]) {
+            $this->assertSame(
+                $expected,
+                $resolver->resolve(new ApiRoute('/events/{id}/x'), ['id' => $value]),
+                $name
+            );
+        }
     }
 
     public function testResolveEncodesQueryValueDelimiters(): void
