@@ -167,6 +167,17 @@ $userRepository->delete(123);
 
 > Note: RouteMapper does not perform HTTP requests. Any HTTP client (Guzzle, Symfony HttpClient, etc.) can be used.
 
+### Parameter encoding
+
+`RouteResolver::resolve()` percent-encodes every parameter value (`rawurlencode()`), so a value always stays inside its own path segment or query value:
+
+```php
+$resolver->resolve(new ApiRoute('/events/{id}'), ['id' => '../admin']); // "/events/..%2Fadmin"
+$resolver->resolve(new ApiRoute('/events?ids={ids}'), ['ids' => '7,8']); // "/events?ids=7,8"
+```
+
+The sub-delimiters `! $ ' ( ) * , : @` are kept literal. All placeholders are replaced in a single pass, so a value that contains `{name}` is never expanded. A placeholder with no matching parameter throws `UnresolvedRouteParameterException`.
+
 ---
 
 ## Comparison with Other Solutions
