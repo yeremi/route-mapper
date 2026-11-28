@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/yeremi/route-mapper/compare/v1.0.2...v1.0.3) (2026-11-28)
+
+
+### Bug Fixes
+
+* **resolver:** reject parameters that resolve to dot segments ([da30278](https://github.com/yeremi/route-mapper/commit/da3027840420d72e97975de496842a8d75b1734a)), closes [#6](https://github.com/yeremi/route-mapper/issues/6)
+
 ## [1.0.2](https://github.com/yeremi/route-mapper/compare/v1.0.1...v1.0.2) (2026-11-27)
 
 
