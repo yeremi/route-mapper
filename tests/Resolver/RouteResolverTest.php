@@ -6,6 +6,7 @@ namespace Yeremi\RouteMapper\Test\Resolver;
 
 use PHPUnit\Framework\TestCase;
 use Yeremi\RouteMapper\Attribute\ApiRoute;
+use Yeremi\RouteMapper\Exception\InvalidRouteParameterException;
 use Yeremi\RouteMapper\Exception\UnresolvedRouteParameterException;
 use Yeremi\RouteMapper\Resolver\RouteResolver;
 
@@ -114,6 +115,82 @@ class RouteResolverTest extends TestCase
         $resolved = $resolver->resolve(new ApiRoute('/events?theaters={theaters}'), ['theaters' => '7&admin=1']);
 
         $this->assertSame('/events?theaters=7%26admin%3D1', $resolved);
+    }
+
+    public function testResolveThrowsWhenValueIsDotDotSegment(): void
+    {
+        $resolver = new RouteResolver();
+
+        $this->expectException(InvalidRouteParameterException::class);
+        $this->expectExceptionMessage(
+            'Route parameter(s) id resolve to the dot segment ".." in "/events/{id}/partnership/{p}".'
+        );
+
+        $resolver->resolve(new ApiRoute('/events/{id}/partnership/{p}'), ['id' => '..', 'p' => 'x']);
+    }
+
+    public function testResolveThrowsWhenValueIsDotSegment(): void
+    {
+        $resolver = new RouteResolver();
+
+        $this->expectException(InvalidRouteParameterException::class);
+        $this->expectExceptionMessage('dot segment "."');
+
+        $resolver->resolve(new ApiRoute('/events/{id}'), ['id' => '.']);
+    }
+
+    public function testResolveThrowsWhenCombinedValuesFormDotSegment(): void
+    {
+        $resolver = new RouteResolver();
+
+        $this->expectException(InvalidRouteParameterException::class);
+        $this->expectExceptionMessage('Route parameter(s) x, y resolve to the dot segment ".."');
+
+        $resolver->resolve(new ApiRoute('/a/{x}{y}/b'), ['x' => '.', 'y' => '.']);
+    }
+
+    public function testResolveThrowsWhenValueCompletesDotSegment(): void
+    {
+        $resolver = new RouteResolver();
+
+        $this->expectException(InvalidRouteParameterException::class);
+
+        $resolver->resolve(new ApiRoute('/a/{x}./b'), ['x' => '']);
+    }
+
+    public function testResolveThrowsForNonIdentifierPlaceholder(): void
+    {
+        $resolver = new RouteResolver();
+
+        $this->expectException(InvalidRouteParameterException::class);
+
+        $resolver->resolve(new ApiRoute('/a/{0}/b'), ['..']);
+    }
+
+    public function testResolveAllowsDotsInsideLongerValues(): void
+    {
+        $resolver = new RouteResolver();
+        $apiRoute = new ApiRoute('/events/{id}');
+
+        foreach (['1.5', 'a..b', '...', '.hidden', 'file.'] as $value) {
+            $this->assertSame('/events/' . $value, $resolver->resolve($apiRoute, ['id' => $value]), $value);
+        }
+    }
+
+    public function testResolveAllowsDotValuesInQueryAndFragment(): void
+    {
+        $resolver = new RouteResolver();
+        $resolved = $resolver->resolve(new ApiRoute('/events?id={id}#{f}'), ['id' => '..', 'f' => '.']);
+
+        $this->assertSame('/events?id=..#.', $resolved);
+    }
+
+    public function testResolveKeepsLiteralDotSegmentsFromTemplate(): void
+    {
+        $resolver = new RouteResolver();
+        $resolved = $resolver->resolve(new ApiRoute('/a/../b/{id}'), ['id' => '1']);
+
+        $this->assertSame('/a/../b/1', $resolved);
     }
 
     public function testResolveKeepsSafeSubDelimiters(): void
