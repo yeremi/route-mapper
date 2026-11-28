@@ -178,6 +178,13 @@ $resolver->resolve(new ApiRoute('/events?ids={ids}'), ['ids' => '7,8']); // "/ev
 
 The sub-delimiters `! $ ' ( ) * , : @` are kept literal. All placeholders are replaced in a single pass, so a value that contains `{name}` is never expanded. A placeholder with no matching parameter throws `UnresolvedRouteParameterException`.
 
+`rawurlencode()` leaves `.` as is, and HTTP clients remove the dot segments `.` and `..` from a path. If parameter values turn a path segment into `.` or `..`, `resolve()` throws `InvalidRouteParameterException`. Dots inside longer values (`1.5`, `a..b`) and dot values in the query string are allowed. Both exceptions extend `InvalidArgumentException`, so code that passes user input can catch either one:
+
+```php
+$resolver->resolve(new ApiRoute('/events/{id}/partnership/{p}'), ['id' => '..', 'p' => 'x']);
+// throws InvalidRouteParameterException
+```
+
 ---
 
 ## Comparison with Other Solutions
